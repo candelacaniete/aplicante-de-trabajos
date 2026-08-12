@@ -6,7 +6,7 @@ App de un solo usuario para cargar tu perfil, generar CVs ATS por puesto y postu
 
 | Carpeta | Para qué |
 | --- | --- |
-| `ui/` | Next.js: wizard de carga y dashboard |
+| `app/` | Next.js: wizard de carga y dashboard |
 | `cv-generator/` | HTML ATS → PDF con Playwright + verificación de texto |
 | `automation/` | Orquestador y un módulo por portal |
 | `data/` | `base_resume.json`, `config.json`, `job_tracker.json`, política |
@@ -24,24 +24,6 @@ npm run dev            # http://localhost:3000
 
 Esta herramienta está pensada para correr **en tu compu**, no en la nube: Playwright abre el navegador visible y los JSON viven en disco.
 
-## Si igual querés deployar la UI en Vercel
-
-El error `No Next.js version detected` aparece porque Next está en `ui/`, no en la raíz. No hace falta tipear una versión a mano.
-
-En el proyecto de Vercel → **Settings → General**:
-
-| Campo | Valor |
-| --- | --- |
-| **Root Directory** | `ui` |
-| **Framework Preset** | Next.js (se detecta solo) |
-| **Node.js Version** | `22.x` |
-| Next.js version | no la completes; en el repo es **16.3.0** |
-
-Environment variables: `ANTHROPIC_API_KEY`.
-
-La corrida de postulaciones (Playwright headed, perfil de Chrome, `data/*.json`) **no funciona en Vercel**. Eso seguí corriendolo con `npm run dev` / `npm run apply` en local.
-
-
 1. En **Cargar datos** completá el wizard (reemplaza la Parte 1 manual).
 2. Anthropic parsea el CV y te muestra huecos. Si no sabés algo, dejalo vacío: **no se inventa**.
 3. Se arman `data/base_resume.json`, `data/config.json` y los PDFs.
@@ -54,6 +36,21 @@ npm run generate-cv    # regenerar PDFs
 npm run apply          # corrida desde la terminal
 npm test
 ```
+
+## Si igual querés deployar la UI en Vercel
+
+Next.js está en la **raíz del repo**. En Vercel dejá **Root Directory vacío** (no pongas `ui`).
+
+| Campo | Valor |
+| --- | --- |
+| **Root Directory** | vacío / `.` |
+| **Framework Preset** | Next.js |
+| **Node.js Version** | `22.x` |
+| Next.js version | no la completes; es **16.3.0** |
+
+Environment variables: `ANTHROPIC_API_KEY`.
+
+La corrida de postulaciones **no funciona en Vercel**. Eso seguí corriendolo en local.
 
 ## Portales
 

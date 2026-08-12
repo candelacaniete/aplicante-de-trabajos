@@ -24,7 +24,9 @@ data/extracted_preview.json
 data/gaps.json
 data/profile_raw.json
 
-# Playwright
+# Vercel
+.vercel
+
 test-results/
 playwright-report/
 blob-report/

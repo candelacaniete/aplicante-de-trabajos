@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: path.join(dir, ".."),
+  outputFileTracingRoot: dir,
   serverExternalPackages: [
     "playwright",
     "googleapis",
@@ -14,11 +14,11 @@ const nextConfig: NextConfig = {
     "@anthropic-ai/sdk",
   ],
   turbopack: {
-    root: path.join(dir, ".."),
+    root: dir,
     resolveAlias: {
-      "@shared": path.join(dir, "../shared"),
-      "@cv-generator": path.join(dir, "../cv-generator"),
-      "@automation": path.join(dir, "../automation"),
+      "@shared": path.join(dir, "shared"),
+      "@cv-generator": path.join(dir, "cv-generator"),
+      "@automation": path.join(dir, "automation"),
     },
   },
 };
