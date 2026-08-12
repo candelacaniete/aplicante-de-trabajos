@@ -3,26 +3,38 @@
   "version": "0.1.0",
   "private": true,
   "description": "Agente local de búsqueda de empleo (Next.js + Playwright + Anthropic)",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
-    "dev": "npm run dev --prefix ui",
-    "build": "npm run build --prefix ui",
-    "lint": "npm run lint --prefix ui",
-    "generate-cv": "npm run generate-cv --prefix ui",
-    "apply": "npm run apply --prefix ui",
-    "test": "npm run test --prefix ui",
-    "postinstall": "npm install --prefix ui"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "generate-cv": "tsx cv-generator/cli.ts",
+    "apply": "tsx automation/run.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.62.0",
     "dotenv": "^17.2.1",
     "googleapis": "^156.0.0",
     "mammoth": "^1.10.0",
+    "next": "16.3.0",
     "playwright": "^1.55.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "unpdf": "^1.1.0",
     "zod": "^4.0.17"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.0",
+    "tailwindcss": "^4",
     "tsx": "^4.20.5",
     "typescript": "^5",
     "vitest": "^3.2.4"

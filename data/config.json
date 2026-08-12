@@ -21,17 +21,25 @@
     "linkedin": {
       "enabled": false,
       "requireManualConfirm": true,
-      "selectorsReviewed": false
+      "selectorsReviewed": true
     },
     "computrabajo": {
       "enabled": false,
       "requireManualConfirm": false,
-      "selectorsReviewed": false
+      "selectorsReviewed": true,
+      "baseUrl": "https://ar.computrabajo.com"
     },
     "indeed": {
       "enabled": false,
       "requireManualConfirm": false,
-      "selectorsReviewed": false
+      "selectorsReviewed": true,
+      "baseUrl": "https://ar.indeed.com"
+    },
+    "bumeran": {
+      "enabled": false,
+      "requireManualConfirm": false,
+      "selectorsReviewed": true,
+      "baseUrl": "https://www.bumeran.com.ar"
     }
   },
   "delays": {
