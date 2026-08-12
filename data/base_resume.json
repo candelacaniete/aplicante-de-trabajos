@@ -1,0 +1,25 @@
+{
+  "personal": {
+    "full_name": "",
+    "city": "",
+    "email": "",
+    "phone": "",
+    "linkedin": "",
+    "portfolio": "",
+    "languages": [],
+    "nationality": "",
+    "work_permit": "",
+    "address": "",
+    "postal_code": "",
+    "licenses": []
+  },
+  "experience": [],
+  "education": [],
+  "courses": [],
+  "skills": {
+    "technical": [],
+    "tools": [],
+    "soft": []
+  },
+  "role_profiles": []
+}

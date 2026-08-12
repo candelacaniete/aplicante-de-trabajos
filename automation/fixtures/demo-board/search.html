@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Demo Board — búsqueda</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 24px; }
+    .job { border: 1px solid #ccc; padding: 12px; margin-bottom: 12px; }
+    a { color: #0b57d0; }
+  </style>
+</head>
+<body>
+  <h1>Resultados de búsqueda</h1>
+  <p id="query-label"></p>
+  <article class="job" data-company="Acme Salud" data-title="Analista de datos" data-years="3">
+    <h2>Analista de datos</h2>
+    <p class="company">Acme Salud</p>
+    <p class="location">Buenos Aires · Híbrido</p>
+    <p class="snippet">SQL, Python, reportes. 3 años.</p>
+    <a class="apply-link" href="./job-ok.html">Ver aviso</a>
+  </article>
+  <article class="job" data-company="Empresa Excluida SA" data-title="Analista" data-years="2">
+    <h2>Analista</h2>
+    <p class="company">Empresa Excluida SA</p>
+    <p class="location">Remoto</p>
+    <p class="snippet">Aviso que debería descartarse por empresa.</p>
+    <a class="apply-link" href="./job-excluded.html">Ver aviso</a>
+  </article>
+  <article class="job" data-company="Beta Tech" data-title="Pasante sin sueldo" data-years="0">
+    <h2>Pasante sin sueldo</h2>
+    <p class="company">Beta Tech</p>
+    <p class="location">CABA</p>
+    <p class="snippet">Pasantía no remunerada, descartar por palabra clave.</p>
+    <a class="apply-link" href="./job-discard.html">Ver aviso</a>
+  </article>
+  <article class="job" data-company="Gamma Corp" data-title="Lead arquitecto" data-years="12">
+    <h2>Lead arquitecto</h2>
+    <p class="company">Gamma Corp</p>
+    <p class="location">CABA</p>
+    <p class="snippet">Se piden 12 años de experiencia.</p>
+    <a class="apply-link" href="./job-senior.html">Ver aviso</a>
+  </article>
+  <article class="job" data-company="Delta Labs" data-title="Analista junior" data-years="1">
+    <h2>Analista junior</h2>
+    <p class="company">Delta Labs</p>
+    <p class="location">CABA</p>
+    <p class="snippet">Formulario que pide DNI — debe quedar incompleto.</p>
+    <a class="apply-link" href="./job-dni.html">Ver aviso</a>
+  </article>
+  <script>
+    const q = new URLSearchParams(location.search).get("q") || "";
+    document.getElementById("query-label").textContent = "Búsqueda: " + q;
+  </script>
+</body>
+</html>

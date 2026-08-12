@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Postular — Analista de datos</title>
+  <style>body { font-family: Arial, sans-serif; margin: 24px; } label { display: block; margin: 8px 0; }</style>
+</head>
+<body>
+  <h1>Analista de datos — Acme Salud</h1>
+  <form id="apply-form">
+    <label>Nombre <input name="name" required /></label>
+    <label>Email <input name="email" type="email" required /></label>
+    <label>Teléfono <input name="phone" required /></label>
+    <label>Carta de presentación <textarea name="cover"></textarea></label>
+    <label>CV <input name="resume" type="file" /></label>
+    <label><input type="checkbox" name="follow" checked /> Seguir a la empresa</label>
+    <label><input type="checkbox" name="news" checked /> Recibir novedades</label>
+    <button type="submit" id="submit">Enviar postulación</button>
+  </form>
+  <p id="result" hidden>Postulación enviada</p>
+  <script>
+    document.getElementById("apply-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      document.getElementById("result").hidden = false;
+    });
+  </script>
+</body>
+</html>
