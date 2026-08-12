@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import mammoth from "mammoth";
 import { extractText } from "unpdf";
-import { dataPath } from "./paths";
+import { uploadsDir } from "./paths";
 
 export async function extractUploadedText(filePath: string, mime: string): Promise<string> {
   const ext = path.extname(filePath).toLowerCase();
@@ -31,7 +31,7 @@ export async function extractUploadedText(filePath: string, mime: string): Promi
 
 export function saveUpload(filename: string, bytes: Buffer): string {
   const safe = filename.replace(/[^a-zA-Z0-9._-]+/g, "_");
-  const dest = dataPath("uploads", `${Date.now()}_${safe}`);
+  const dest = path.join(uploadsDir(), `${Date.now()}_${safe}`);
   fs.mkdirSync(path.dirname(dest), { recursive: true });
   fs.writeFileSync(dest, bytes);
   return dest;

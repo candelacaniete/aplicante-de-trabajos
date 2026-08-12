@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { readApiJson } from "@/app/lib/read-api-json";
 import { sheetIdFromUrl } from "@shared/sheet-url";
@@ -18,6 +18,14 @@ const STEPS = [
 ] as const;
 
 type Gap = { id: string; field: string; question: string; context: string };
+
+type SetupStatus = {
+  hosted: boolean;
+  hasAnthropic: boolean;
+  hasGoogle: boolean;
+  sheetUrl: string;
+  missingEnv: string[];
+};
 
 const emptyPersonal = {
   full_name: "",
@@ -58,6 +66,8 @@ export function Wizard() {
   const [cvLanguage, setCvLanguage] = useState<"es" | "en">("es");
   const [sheetEnabled, setSheetEnabled] = useState(false);
   const [sheetUrl, setSheetUrl] = useState("");
+  const [hosted, setHosted] = useState(false);
+  const [status, setStatus] = useState<SetupStatus | null>(null);
   const [gaps, setGaps] = useState<Gap[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [done, setDone] = useState(false);
@@ -66,9 +76,30 @@ export function Wizard() {
     if (step === 0) return Boolean(cvText.trim() || cvFile);
     if (step === 1) return Boolean(personal.full_name && personal.email && personal.city);
     if (step === 2) return positions.some((p) => p.title.trim());
-    if (step === 5 && sheetEnabled) return Boolean(sheetIdFromUrl(sheetUrl));
+    if (step === 5 && (sheetEnabled || hosted)) return Boolean(sheetIdFromUrl(sheetUrl));
     return true;
-  }, [step, cvText, cvFile, personal, positions, sheetEnabled, sheetUrl]);
+  }, [step, cvText, cvFile, personal, positions, sheetEnabled, sheetUrl, hosted]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadStatus() {
+      try {
+        const res = await fetch("/api/setup/status");
+        const data = await readApiJson<SetupStatus & { error?: string }>(res);
+        if (cancelled || !res.ok) return;
+        setStatus(data);
+        setHosted(data.hosted);
+        if (data.hosted) setSheetEnabled(true);
+        if (data.sheetUrl) setSheetUrl((prev) => prev || data.sheetUrl);
+      } catch {
+        /* el wizard igual se puede completar en local */
+      }
+    }
+    void loadStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function toggleBoard(name: string) {
     setBoards((prev) => (prev.includes(name) ? prev.filter((b) => b !== name) : [...prev, name]));
@@ -106,7 +137,7 @@ export function Wizard() {
             education_notes: educationNotes,
             cv_language: cvLanguage,
           },
-          google_sheet: { enabled: sheetEnabled, url: sheetUrl },
+          google_sheet: { enabled: sheetEnabled || hosted, url: sheetUrl },
         }),
       );
       if (cvFile) form.set("cv", cvFile);
@@ -132,7 +163,7 @@ export function Wizard() {
       const res = await fetch("/api/setup/finalize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: override ?? answers }),
+        body: JSON.stringify({ answers: override ?? answers, sheetUrl }),
       });
       const data = await readApiJson<{ error?: string }>(res);
       if (!res.ok) throw new Error(data.error || "No pude armar el CV base");
@@ -149,8 +180,9 @@ export function Wizard() {
       <div className="rounded-xl border border-stone-200 bg-white p-6">
         <h2 className="text-lg font-semibold">Listo. Ya está armado tu CV base.</h2>
         <p className="mt-2 text-stone-600">
-          Guardé <code>data/base_resume.json</code> y <code>data/config.json</code>, y generé los PDFs
-          en <code>tailored_resumes/</code> si la verificación pasó.
+          {hosted
+            ? "El perfil quedó en tu planilla de Google (pestaña _agente). Las claves siguen en las variables de entorno de Vercel."
+            : "Guardé data/base_resume.json y data/config.json, y generé los PDFs en tailored_resumes/ si la verificación pasó."}
         </p>
         <Link
           href="/"
@@ -176,6 +208,14 @@ export function Wizard() {
           </li>
         ))}
       </ol>
+
+      {status?.hosted && status.missingEnv.length > 0 ? (
+        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+          En Vercel → Settings → Environment Variables faltan:{" "}
+          <strong>{status.missingEnv.join(", ")}</strong>. Marcá Production / Preview / Development y
+          hacé Redeploy. El CV y el perfil se guardan en la planilla; las claves no van en localhost.
+        </div>
+      ) : null}
 
       {step === 0 && (
         <section className="space-y-4">
@@ -315,31 +355,63 @@ export function Wizard() {
 
       {step === 5 && (
         <section className="space-y-4">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={sheetEnabled} onChange={(e) => setSheetEnabled(e.target.checked)} />
-            Sincronizar con una planilla de Google
-          </label>
-          {sheetEnabled ? (
+          {hosted ? (
             <>
+              <p className="text-stone-700">
+                En Vercel las claves van en <strong>Environment Variables</strong>, no en un archivo
+                .env local:
+              </p>
+              <ul className="list-disc space-y-1 pl-5 text-sm text-stone-600">
+                <li>
+                  <code>ANTHROPIC_API_KEY</code>
+                </li>
+                <li>
+                  <code>GOOGLE_SERVICE_ACCOUNT_JSON</code> (el JSON de la cuenta de servicio, en una
+                  sola línea)
+                </li>
+                <li>
+                  <code>GOOGLE_SHEET_URL</code> (el link de esta hoja)
+                </li>
+              </ul>
+              <p className="text-sm text-stone-600">
+                Compartí la hoja con el email de la cuenta de servicio (permiso Editor). El CV, tus
+                datos y la config se escriben en la pestaña <code>_agente</code> de esa planilla.
+              </p>
               <Field label="Link de la hoja" value={sheetUrl} onChange={setSheetUrl} />
               {sheetUrl.trim() && !sheetIdFromUrl(sheetUrl) ? (
                 <p className="text-sm text-red-700">
                   Pegá el link completo de Google Sheets (docs.google.com/spreadsheets/d/...).
                 </p>
               ) : null}
-              <p className="text-sm text-stone-600">
-                El link se guarda ahora. La planilla se actualiza cuando postulás, no en este paso.
-                Compartí la hoja con el email de la cuenta de servicio (Editor) y poné
-                GOOGLE_SERVICE_ACCOUNT_JSON o GOOGLE_APPLICATION_CREDENTIALS en el archivo .env.
-              </p>
             </>
           ) : (
-            <p className="text-stone-600">Si no, el seguimiento queda en data/job_tracker.json.</p>
+            <>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={sheetEnabled}
+                  onChange={(e) => setSheetEnabled(e.target.checked)}
+                />
+                Sincronizar con una planilla de Google
+              </label>
+              {sheetEnabled ? (
+                <>
+                  <Field label="Link de la hoja" value={sheetUrl} onChange={setSheetUrl} />
+                  {sheetUrl.trim() && !sheetIdFromUrl(sheetUrl) ? (
+                    <p className="text-sm text-red-700">
+                      Pegá el link completo de Google Sheets (docs.google.com/spreadsheets/d/...).
+                    </p>
+                  ) : null}
+                  <p className="text-sm text-stone-600">
+                    En local podés usar .env. En Vercel usá Environment Variables:
+                    ANTHROPIC_API_KEY, GOOGLE_SERVICE_ACCOUNT_JSON y GOOGLE_SHEET_URL.
+                  </p>
+                </>
+              ) : (
+                <p className="text-stone-600">Si no, el seguimiento queda en data/job_tracker.json.</p>
+              )}
+            </>
           )}
-          <p className="text-sm text-stone-500">
-            Al guardar se lee el CV con Anthropic. Hace falta ANTHROPIC_API_KEY en .env y correr la
-            app en tu PC (npm run dev), no en Vercel.
-          </p>
         </section>
       )}
 
@@ -393,7 +465,7 @@ export function Wizard() {
           <button
             type="button"
             className="rounded-lg bg-teal-700 px-4 py-2 text-white disabled:opacity-40"
-            disabled={!canNext || busy}
+            disabled={!canNext || busy || Boolean(hosted && status && (!status.hasAnthropic || !status.hasGoogle))}
             onClick={parseCv}
           >
             {busy ? "Leyendo el CV…" : "Guardar y analizar"}

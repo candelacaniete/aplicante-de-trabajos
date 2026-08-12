@@ -1,6 +1,8 @@
-# Agente de empleo (local)
+# Agente de empleo
 
-App de un solo usuario para cargar tu perfil, generar CVs ATS por puesto y postular con un navegador visible. La fuente de verdad son archivos JSON en `data/`. No hay base de datos ni deploy.
+App de un solo usuario para cargar tu perfil, generar CVs ATS por puesto y postular con un navegador visible.
+
+En **tu PC** la fuente de verdad son archivos JSON en `data/`. En **Vercel** las claves van en Environment Variables y el perfil se guarda en tu planilla de Google (pestaña `_agente`).
 
 ## Qué hay acá
 
@@ -9,11 +11,11 @@ App de un solo usuario para cargar tu perfil, generar CVs ATS por puesto y postu
 | `app/` | Next.js: wizard de carga y dashboard |
 | `cv-generator/` | HTML ATS → PDF con Playwright + verificación de texto |
 | `automation/` | Orquestador y un módulo por portal |
-| `data/` | `base_resume.json`, `config.json`, `job_tracker.json`, política |
-| `tailored_resumes/` | PDFs generados |
+| `data/` | `base_resume.json`, `config.json`, `job_tracker.json`, política (local) |
+| `tailored_resumes/` | PDFs generados (local) |
 | `automation/browser-profile/` | Perfil persistente de Chromium (sesiones logueadas) |
 
-## Arranque
+## Arranque local
 
 ```bash
 cp .env.example .env   # pegá ANTHROPIC_API_KEY
@@ -22,9 +24,7 @@ npx playwright install chromium
 npm run dev            # http://localhost:3000
 ```
 
-Esta herramienta está pensada para correr **en tu compu**, no en la nube: Playwright abre el navegador visible y los JSON viven en disco.
-
-1. En **Cargar datos** completá el wizard (reemplaza la Parte 1 manual).
+1. En **Cargar datos** completá el wizard.
 2. Anthropic parsea el CV y te muestra huecos. Si no sabés algo, dejalo vacío: **no se inventa**.
 3. Se arman `data/base_resume.json`, `data/config.json` y los PDFs.
 4. En el dashboard, **Iniciar corrida**. El navegador se abre visible.
@@ -37,7 +37,7 @@ npm run apply          # corrida desde la terminal
 npm test
 ```
 
-## Si igual querés deployar la UI en Vercel
+## Deploy en Vercel (wizard + perfil)
 
 Next.js está en la **raíz del repo**. En Vercel dejá **Root Directory vacío** (no pongas `ui`).
 
@@ -48,9 +48,23 @@ Next.js está en la **raíz del repo**. En Vercel dejá **Root Directory vacío*
 | **Node.js Version** | `22.x` |
 | Next.js version | no la completes; es **16.3.0** |
 
-Environment variables: `ANTHROPIC_API_KEY`.
+En **Settings → Environment Variables** (Production, Preview y Development):
 
-La corrida de postulaciones **no funciona en Vercel**. El wizard (**Guardar y analizar**) tampoco: necesita escribir archivos en `data/`. Si ves `Unexpected end of JSON input` o una respuesta vacía, corré `npm run dev` en tu PC.
+| Variable | Qué pegar |
+| --- | --- |
+| `ANTHROPIC_API_KEY` | tu clave de Anthropic |
+| `GOOGLE_SERVICE_ACCOUNT_JSON` | el JSON de la cuenta de servicio, **en una sola línea** |
+| `GOOGLE_SHEET_URL` | el link de la hoja (`https://docs.google.com/spreadsheets/d/...`) |
+
+Después **Redeploy**.
+
+1. En Google Cloud creá una cuenta de servicio, descargá el JSON y habilita la API de Google Sheets.
+2. Compartí la hoja con el email de esa cuenta (permiso **Editor**).
+3. Completá el wizard en la URL de Vercel. El CV y la config se escriben en la pestaña `_agente` de la planilla.
+
+Las env vars no se pueden escribir desde la app: por eso el perfil vive en la planilla y las **claves** en Vercel.
+
+La corrida de postulaciones **no funciona en Vercel** (hace falta un navegador visible). Eso: `npm run apply` en tu PC.
 
 ## Portales
 
@@ -69,13 +83,11 @@ Dominios en `data/config.json` → `boards.*.baseUrl` si no estás en Argentina.
 - Nunca postular a algo excluido o para lo que no calificás.
 - Postulación siempre headed (`headless: false`). `PLAYWRIGHT_HEADLESS=1` solo para tests.
 
-## Google Sheets (opcional)
+## Google Sheets
 
-En el wizard pegá el link de la hoja (`docs.google.com/spreadsheets/d/...`). Eso solo guarda la URL; la planilla se actualiza cuando postulás.
+Columnas de postulaciones (primera hoja): ID, Fecha, Empresa, Puesto, Perfil de CV, Búsqueda, Ubicación, Portal, Cómo se postuló, Link del aviso, CV enviado, Estado, Notas.
 
-Columnas: ID, Fecha, Empresa, Puesto, Perfil de CV, Búsqueda, Ubicación, Portal, Cómo se postuló, Link del aviso, CV enviado, Estado, Notas.
-
-Hace falta una cuenta de servicio con acceso de **Editor** a la hoja (`GOOGLE_APPLICATION_CREDENTIALS` o `GOOGLE_SERVICE_ACCOUNT_JSON` en `.env`). Compartí la hoja con el email de esa cuenta.
+En Vercel, la pestaña `_agente` guarda el CV parseado, `config` y el tracker. No la edites a mano.
 
 ## Advertencia
 

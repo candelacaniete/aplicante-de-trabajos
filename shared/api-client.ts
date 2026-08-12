@@ -7,7 +7,7 @@ export function messageForEmptyApiResponse(status: number): string {
     return "Se agotó el tiempo. Esta app tiene que correr en tu PC (npm run dev), no en Vercel.";
   }
   if (status >= 500 || status === 0) {
-    return "El servidor no devolvió datos. Esta app guarda archivos en tu computadora: corré npm run dev y abrí http://localhost:3000/setup (no uses Vercel para este paso).";
+    return "El servidor no devolvió datos. En Vercel cargá ANTHROPIC_API_KEY, GOOGLE_SERVICE_ACCOUNT_JSON y GOOGLE_SHEET_URL (y Redeploy). O corré npm run dev en tu computadora.";
   }
   return "El servidor no devolvió datos. Probá de nuevo o corré npm run dev en tu computadora.";
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { requireSheetId, sheetIdFromUrl } from "../shared/sheet-url";
 import { messageForEmptyApiResponse, messageForNonJsonApiResponse } from "../shared/api-client";
+import { chunkValue, joinChunks } from "../shared/google-state";
 
 describe("sheetIdFromUrl", () => {
   it("acepta el link de compartir de Google Sheets", () => {
@@ -23,5 +24,15 @@ describe("messageForEmptyApiResponse", () => {
 
   it("incluye un recorte si la respuesta no era JSON", () => {
     expect(messageForNonJsonApiResponse(502, "<html>bad gateway</html>")).toMatch(/502/);
+  });
+});
+
+describe("chunkValue / joinChunks", () => {
+  it("parte y vuelve a unir JSON más largo que una celda", () => {
+    const value = "abcdefghij".repeat(5000);
+    const rows = chunkValue("profile_raw", value, 80);
+    expect(rows.length).toBeGreaterThan(1);
+    const joined = joinChunks(rows.map((r) => [r[0], r[1], r[2]] as [string, string, string]));
+    expect(joined.profile_raw).toBe(value);
   });
 });

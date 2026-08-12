@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { FILES, dataPath, tailoredResumesDir, browserProfileDir } from "./paths";
+import { FILES, dataPath, tailoredResumesDir, browserProfileDir, uploadsDir } from "./paths";
 import type {
   AppConfig,
   BaseResume,
@@ -9,8 +9,45 @@ import type {
   ProfileRaw,
   RunProgress,
 } from "./types";
+import { isServerlessHost } from "./runtime";
+import { hasGoogleCredentials, sheetUrlFromEnv, vercelEnvHelp } from "./google-auth";
+import { readStateMap, writeStateKeys } from "./google-state";
+
+const memory = new Map<string, string>();
+const dirty = new Set<string>();
+let persistUrl = "";
+
+const STATE_FILES: Record<string, string> = {
+  "profile_raw.json": "profile_raw",
+  "extracted_preview.json": "extracted_preview",
+  "gaps.json": "gaps",
+  "base_resume.json": "base_resume",
+  "config.json": "config",
+  "job_tracker.json": "job_tracker",
+  "run_progress.json": "run_progress",
+  "manual_confirm_queue.json": "manual_confirm",
+};
+
+function stateKeyFromFile(file: string): string | null {
+  return STATE_FILES[path.basename(file)] ?? null;
+}
+
+function fileFromStateKey(key: string): string {
+  const match = Object.entries(STATE_FILES).find(([, value]) => value === key);
+  return dataPath(match?.[0] ?? `${key}.json`);
+}
 
 export function readJson<T>(file: string, fallback: T): T {
+  if (memory.has(file)) {
+    const raw = memory.get(file)!;
+    if (!raw.trim()) return fallback;
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+  if (isServerlessHost()) return fallback;
   if (!fs.existsSync(file)) return fallback;
   const raw = fs.readFileSync(file, "utf8");
   if (!raw.trim()) return fallback;
@@ -18,8 +55,66 @@ export function readJson<T>(file: string, fallback: T): T {
 }
 
 export function writeJson(file: string, value: unknown): void {
+  const raw = `${JSON.stringify(value, null, 2)}\n`;
+  memory.set(file, raw);
+  dirty.add(file);
+  if (isServerlessHost()) return;
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  fs.writeFileSync(file, raw, "utf8");
+}
+
+export async function hydrateStore(sheetUrl?: string): Promise<void> {
+  memory.clear();
+  dirty.clear();
+  persistUrl = (sheetUrl ?? "").trim() || sheetUrlFromEnv();
+  if (!isServerlessHost()) return;
+  if (!persistUrl || !hasGoogleCredentials()) return;
+  const map = await readStateMap(persistUrl);
+  for (const [key, json] of Object.entries(map)) {
+    memory.set(fileFromStateKey(key), json);
+  }
+}
+
+export async function persistStore(): Promise<void> {
+  if (!isServerlessHost() || dirty.size === 0) return;
+  const url = persistUrl || sheetUrlFromEnv();
+  if (!url || !hasGoogleCredentials()) {
+    throw new Error(
+      vercelEnvHelp(
+        [
+          !hasGoogleCredentials() ? "GOOGLE_SERVICE_ACCOUNT_JSON" : "",
+          !url ? "GOOGLE_SHEET_URL" : "",
+        ].filter(Boolean),
+      ),
+    );
+  }
+  const updates: Record<string, string> = {};
+  for (const file of dirty) {
+    const key = stateKeyFromFile(file);
+    if (key) updates[key] = memory.get(file) ?? "";
+  }
+  if (Object.keys(updates).length === 0) {
+    dirty.clear();
+    return;
+  }
+  await writeStateKeys(url, updates);
+  dirty.clear();
+}
+
+export async function withStore<T>(fn: () => Promise<T>, sheetUrl?: string): Promise<T> {
+  await hydrateStore(sheetUrl);
+  try {
+    const result = await fn();
+    await persistStore();
+    return result;
+  } catch (err) {
+    try {
+      await persistStore();
+    } catch (persistErr) {
+      console.error(persistErr);
+    }
+    throw err;
+  }
 }
 
 export function emptyPersonal() {
@@ -129,8 +224,19 @@ export function writeTracker(tracker: JobTracker): void {
 }
 
 export function readProfileRaw(): ProfileRaw | null {
-  if (!fs.existsSync(FILES.profileRaw())) return null;
-  return readJson<ProfileRaw | null>(FILES.profileRaw(), null);
+  const file = FILES.profileRaw();
+  if (memory.has(file)) {
+    const raw = memory.get(file)!;
+    if (!raw.trim()) return null;
+    try {
+      return JSON.parse(raw) as ProfileRaw;
+    } catch {
+      return null;
+    }
+  }
+  if (isServerlessHost()) return null;
+  if (!fs.existsSync(file)) return null;
+  return readJson<ProfileRaw | null>(file, null);
 }
 
 export function writeProfileRaw(raw: ProfileRaw): void {
@@ -154,19 +260,11 @@ export function writeManualQueue(queue: ManualConfirmRequest[]): void {
 }
 
 export function ensureDirs(): void {
-  try {
-    fs.mkdirSync(dataPath(), { recursive: true });
-    fs.mkdirSync(dataPath("uploads"), { recursive: true });
-    fs.mkdirSync(tailoredResumesDir(), { recursive: true });
-    fs.mkdirSync(browserProfileDir(), { recursive: true });
-  } catch (err) {
-    const code = err && typeof err === "object" && "code" in err ? String(err.code) : "";
-    if (code === "EROFS" || code === "EACCES" || code === "EPERM") {
-      throw new Error(
-        "No pude escribir en data/. Esta app tiene que correr en tu PC (npm run dev), no en un hosting de solo lectura como Vercel.",
-      );
-    }
-    throw err;
+  const dirs = isServerlessHost()
+    ? [uploadsDir()]
+    : [dataPath(), dataPath("uploads"), tailoredResumesDir(), browserProfileDir()];
+  for (const dir of dirs) {
+    fs.mkdirSync(dir, { recursive: true });
   }
 }
 

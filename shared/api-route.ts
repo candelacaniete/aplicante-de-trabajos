@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
+import { isServerlessHost } from "./runtime";
 
-export function isServerlessHost(): boolean {
-  return Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
-}
+export { isServerlessHost };
 
 export function localOnlyError(): NextResponse | null {
   if (!isServerlessHost()) return null;
   return NextResponse.json(
     {
       error:
-        "Esta app guarda archivos en tu computadora. El análisis del CV y la planilla no funcionan en Vercel. En tu PC: npm install && npm run dev, y abrí http://localhost:3000/setup",
+        "Las postulaciones automáticas abren un navegador en tu computadora y no corren en Vercel. El perfil sí: usá /setup. La corrida: npm run apply en tu PC.",
     },
     { status: 400 },
   );
