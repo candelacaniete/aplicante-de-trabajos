@@ -1,5 +1,7 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+import { isServerlessHost } from "./runtime";
 
 function looksLikeRoot(dir: string): boolean {
   return (
@@ -27,6 +29,11 @@ export function getRootDir(): string {
 
 export function dataPath(...parts: string[]): string {
   return path.join(getRootDir(), "data", ...parts);
+}
+
+export function uploadsDir(): string {
+  if (isServerlessHost()) return path.join(os.tmpdir(), "agente-uploads");
+  return dataPath("uploads");
 }
 
 export function tailoredResumesDir(): string {

@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { RunProgress, TrackerEntry } from "@shared/types";
+import { readApiJson } from "@/app/lib/read-api-json";
 
 interface DashboardPayload {
   configured: boolean;
+  hosted?: boolean;
+  setupError?: string;
   today: Record<string, number>;
   remaining: Record<string, number>;
   remainingTotal: number;
@@ -24,7 +27,7 @@ export function Dashboard() {
     async function tick() {
       try {
         const res = await fetch("/api/tracker");
-        const json = await res.json();
+        const json = await readApiJson<DashboardPayload & { error?: string }>(res);
         if (cancelled) return;
         if (!res.ok) throw new Error(json.error || "No pude leer el tracker");
         setData(json);
@@ -50,7 +53,7 @@ export function Dashboard() {
     setError("");
     try {
       const res = await fetch("/api/run", { method: "POST" });
-      const json = await res.json();
+      const json = await readApiJson<{ error?: string }>(res);
       if (!res.ok) throw new Error(json.error || "No pude iniciar la corrida");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -74,6 +77,7 @@ export function Dashboard() {
   if (!data.configured) {
     return (
       <div className="rounded-xl border border-stone-200 bg-white p-6">
+        {data.setupError ? <p className="mb-3 text-sm text-red-700">{data.setupError}</p> : null}
         <p>Todavía no cargaste tus datos.</p>
         <Link href="/setup" className="mt-3 inline-block text-teal-800 underline">
           Ir al formulario
@@ -90,13 +94,15 @@ export function Dashboard() {
         <button
           type="button"
           onClick={startRun}
-          disabled={busy || data.progress.status === "running"}
+          disabled={busy || data.progress.status === "running" || Boolean(data.hosted)}
           className="rounded-lg bg-teal-700 px-4 py-2 text-white disabled:opacity-40"
         >
           {data.progress.status === "running" ? "Corrida en curso…" : "Iniciar corrida"}
         </button>
         <span className="text-sm text-stone-600">
-          Tope restante hoy: {data.remainingTotal}. El navegador se abre visible, nunca en segundo plano.
+          {data.hosted
+            ? "En Vercel no se postula: el navegador tiene que abrirse en tu PC (npm run apply)."
+            : `Tope restante hoy: ${data.remainingTotal}. El navegador se abre visible, nunca en segundo plano.`}
         </span>
       </div>
 

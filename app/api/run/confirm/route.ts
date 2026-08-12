@@ -3,10 +3,14 @@ import { loadEnv } from "@shared/load-env";
 import { readJson, writeJson } from "@shared/store";
 import { FILES } from "@shared/paths";
 import type { ManualConfirmRequest } from "@shared/types";
+import { errorJson, localOnlyError } from "@shared/api-route";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  try {
+  const blocked = localOnlyError();
+  if (blocked) return blocked;
   loadEnv();
   const body = (await request.json()) as { resolution?: "confirmed" | "skipped" };
   if (body.resolution !== "confirmed" && body.resolution !== "skipped") {
@@ -19,4 +23,7 @@ export async function POST(request: Request) {
   queue[0].resolution = body.resolution;
   writeJson(FILES.manualConfirm(), queue);
   return NextResponse.json({ ok: true });
+  } catch (err) {
+    return errorJson(err);
+  }
 }
