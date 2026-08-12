@@ -88,8 +88,9 @@ export interface SearchConfig {
 export interface BoardConfig {
   enabled: boolean;
   requireManualConfirm: boolean;
-  /** Selectores reales: vacíos hasta revisar la página juntos. */
+  /** true si los selectores se basaron en HTML vivo o locators por rol/texto. */
   selectorsReviewed: boolean;
+  baseUrl?: string;
 }
 
 export interface AppConfig {

@@ -37,13 +37,11 @@ npm test
 
 ## Portales
 
-El único portal con selectores reales en este repo es **demo**: un tablero HTML local para probar el patrón (cupos, exclusiones, DNI bloqueado, destildar “seguir a la empresa”).
+Computrabajo, LinkedIn, Indeed y Bumeran (Argentina por defecto). El portal **demo** sigue ahí para probar el patrón sin sitios reales.
 
-LinkedIn, Computrabajo e Indeed tienen la interfaz `JobBoard` pero **sin selectores inventados**. Hasta que revisemos juntos la página, tiran `SelectorsPendingError`.
+La primera corrida de cada portal: logueate a mano. LinkedIn nunca aprieta Enviar (confirmación en el dashboard). Indeed solo usa Indeed Apply, no el sitio de la empresa.
 
-LinkedIn además tiene `requireManualConfirm: true`: nunca aprieta Enviar. Completa lo que pueda y espera a que vos lo hagas. En el dashboard aparece “Ya envié”.
-
-Elegí el primer portal real en el chat (Computrabajo, Indeed, Bumeran, etc.) y lo armamos mirando la página, no de memoria.
+Dominios en `data/config.json` → `boards.*.baseUrl` si no estás en Argentina.
 
 ## Límites duros (en código)
 

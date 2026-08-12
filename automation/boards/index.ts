@@ -3,6 +3,7 @@ import { demoBoard } from "./demo";
 import { linkedinBoard } from "./linkedin";
 import { computrabajoBoard } from "./computrabajo";
 import { indeedBoard } from "./indeed";
+import { bumeranBoard } from "./bumeran";
 import { readConfig } from "../../shared/store";
 
 const registry: Record<string, JobBoard> = {
@@ -10,6 +11,7 @@ const registry: Record<string, JobBoard> = {
   linkedin: linkedinBoard,
   computrabajo: computrabajoBoard,
   indeed: indeedBoard,
+  bumeran: bumeranBoard,
 };
 
 export function getBoard(name: string): JobBoard {

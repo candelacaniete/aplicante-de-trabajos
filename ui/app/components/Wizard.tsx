@@ -48,7 +48,7 @@ export function Wizard() {
   const [dailyCap, setDailyCap] = useState(5);
   const [excluded, setExcluded] = useState("");
   const [discard, setDiscard] = useState("pasantía no remunerada, junior sin sueldo");
-  const [boards, setBoards] = useState<string[]>(["demo"]);
+  const [boards, setBoards] = useState<string[]>(["computrabajo", "linkedin", "indeed", "bumeran"]);
   const [boardExtra, setBoardExtra] = useState("");
   const [salary, setSalary] = useState("");
   const [availability, setAvailability] = useState("");
@@ -264,19 +264,16 @@ export function Wizard() {
       {step === 3 && (
         <section className="space-y-4">
           <p className="text-stone-600">
-            Si ya sabés qué portales usar, marcalos. Si no, no lo automatices: charlalo una vez en el
-            chat (rubro y país) y después cargá la lista acá. El portal <strong>demo</strong> es un
-            tablero local para probar el patrón, sin sitios reales.
+            Marcá los portales. La primera corrida de cada uno: logueate a mano en el navegador
+            (el script no crea cuentas ni acepta términos). LinkedIn nunca aprieta Enviar: completa
+            el formulario y espera a que lo hagas vos.
           </p>
-          <p className="text-sm text-amber-800">
-            LinkedIn, Computrabajo e Indeed están como módulos, pero sin selectores inventados. Hasta
-            que revisemos juntos la página, esos portales no postulan. LinkedIn, además, nunca aprieta
-            Enviar solo.
-          </p>
-          {["demo", "computrabajo", "indeed", "linkedin"].map((name) => (
+          {["computrabajo", "linkedin", "indeed", "bumeran", "demo"].map((name) => (
             <label key={name} className="flex items-center gap-2">
               <input type="checkbox" checked={boards.includes(name)} onChange={() => toggleBoard(name)} />
               {name}
+              {name === "demo" ? " (tablero local de prueba)" : ""}
+              {name === "linkedin" ? " (envío manual)" : ""}
             </label>
           ))}
           <Field
