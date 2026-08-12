@@ -1,0 +1,30 @@
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.log
+.env
+.env.local
+.DS_Store
+
+# Perfil persistente de Chromium (sesiones logueadas)
+automation/browser-profile/**
+!automation/browser-profile/.gitkeep
+
+# PDFs generados
+tailored_resumes/*.pdf
+!tailored_resumes/.gitkeep
+
+# Uploads del wizard
+data/uploads/**
+!data/uploads/.gitkeep
+
+data/extracted_preview.json
+data/gaps.json
+data/profile_raw.json
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/

@@ -1,0 +1,42 @@
+{
+  "searches": [],
+  "daily_total_cap": 5,
+  "excluded_companies": [],
+  "discard_keywords": [],
+  "duplicate_check_days_threshold": 30,
+  "salary_expectation": "",
+  "availability": "",
+  "cv_language": "es",
+  "industry": "",
+  "google_sheet": {
+    "enabled": false,
+    "url": ""
+  },
+  "boards": {
+    "demo": {
+      "enabled": true,
+      "requireManualConfirm": false,
+      "selectorsReviewed": true
+    },
+    "linkedin": {
+      "enabled": false,
+      "requireManualConfirm": true,
+      "selectorsReviewed": false
+    },
+    "computrabajo": {
+      "enabled": false,
+      "requireManualConfirm": false,
+      "selectorsReviewed": false
+    },
+    "indeed": {
+      "enabled": false,
+      "requireManualConfirm": false,
+      "selectorsReviewed": false
+    }
+  },
+  "delays": {
+    "min_ms": 800,
+    "max_ms": 2500
+  },
+  "headless": false
+}
