@@ -7,6 +7,9 @@ coverage/
 .env
 .env.local
 .DS_Store
+next-env.d.ts
+.vercel
+
 
 # Perfil persistente de Chromium (sesiones logueadas)
 automation/browser-profile/**
