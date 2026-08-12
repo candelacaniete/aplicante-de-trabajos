@@ -2,16 +2,20 @@ import { NextResponse } from "next/server";
 import { loadEnv } from "@shared/load-env";
 import { isResumeConfigured, readBaseResume } from "@shared/store";
 import { generateAllResumes } from "@cv-generator/generate";
+import { errorJson, localOnlyError } from "@shared/api-route";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST() {
-  loadEnv();
-  const resume = readBaseResume();
-  if (!isResumeConfigured(resume)) {
-    return NextResponse.json({ error: "Completá el wizard primero." }, { status: 400 });
-  }
   try {
+    const blocked = localOnlyError();
+    if (blocked) return blocked;
+    loadEnv();
+    const resume = readBaseResume();
+    if (!isResumeConfigured(resume)) {
+      return NextResponse.json({ error: "Completá el wizard primero." }, { status: 400 });
+    }
     const results = await generateAllResumes(resume);
     return NextResponse.json({
       ok: true,
@@ -22,9 +26,6 @@ export async function POST() {
       })),
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : String(err) },
-      { status: 500 },
-    );
+    return errorJson(err);
   }
 }

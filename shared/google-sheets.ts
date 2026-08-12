@@ -2,17 +2,10 @@ import { google } from "googleapis";
 import type { TrackerEntry } from "./types";
 import { TRACKER_COLUMNS } from "./types";
 import { trackerRow } from "./tracker";
-
-function sheetIdFromUrl(url: string): string | null {
-  const m = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-  return m?.[1] ?? null;
-}
+import { requireSheetId } from "./sheet-url";
 
 export async function appendTrackerRow(sheetUrl: string, entry: TrackerEntry): Promise<void> {
-  const spreadsheetId = sheetIdFromUrl(sheetUrl);
-  if (!spreadsheetId) {
-    throw new Error("El link de Google Sheets no parece válido.");
-  }
+  const spreadsheetId = requireSheetId(sheetUrl);
 
   const inline = process.env.GOOGLE_SERVICE_ACCOUNT_JSON?.trim();
   const keyFile = process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim();

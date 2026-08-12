@@ -50,7 +50,7 @@ Next.js está en la **raíz del repo**. En Vercel dejá **Root Directory vacío*
 
 Environment variables: `ANTHROPIC_API_KEY`.
 
-La corrida de postulaciones **no funciona en Vercel**. Eso seguí corriendolo en local.
+La corrida de postulaciones **no funciona en Vercel**. El wizard (**Guardar y analizar**) tampoco: necesita escribir archivos en `data/`. Si ves `Unexpected end of JSON input` o una respuesta vacía, corré `npm run dev` en tu PC.
 
 ## Portales
 
@@ -71,9 +71,11 @@ Dominios en `data/config.json` → `boards.*.baseUrl` si no estás en Argentina.
 
 ## Google Sheets (opcional)
 
+En el wizard pegá el link de la hoja (`docs.google.com/spreadsheets/d/...`). Eso solo guarda la URL; la planilla se actualiza cuando postulás.
+
 Columnas: ID, Fecha, Empresa, Puesto, Perfil de CV, Búsqueda, Ubicación, Portal, Cómo se postuló, Link del aviso, CV enviado, Estado, Notas.
 
-Hace falta una cuenta de servicio con acceso a la hoja (`GOOGLE_APPLICATION_CREDENTIALS` o `GOOGLE_SERVICE_ACCOUNT_JSON`).
+Hace falta una cuenta de servicio con acceso de **Editor** a la hoja (`GOOGLE_APPLICATION_CREDENTIALS` o `GOOGLE_SERVICE_ACCOUNT_JSON` en `.env`). Compartí la hoja con el email de esa cuenta.
 
 ## Advertencia
 

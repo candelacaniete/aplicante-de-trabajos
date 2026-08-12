@@ -154,10 +154,20 @@ export function writeManualQueue(queue: ManualConfirmRequest[]): void {
 }
 
 export function ensureDirs(): void {
-  fs.mkdirSync(dataPath(), { recursive: true });
-  fs.mkdirSync(dataPath("uploads"), { recursive: true });
-  fs.mkdirSync(tailoredResumesDir(), { recursive: true });
-  fs.mkdirSync(browserProfileDir(), { recursive: true });
+  try {
+    fs.mkdirSync(dataPath(), { recursive: true });
+    fs.mkdirSync(dataPath("uploads"), { recursive: true });
+    fs.mkdirSync(tailoredResumesDir(), { recursive: true });
+    fs.mkdirSync(browserProfileDir(), { recursive: true });
+  } catch (err) {
+    const code = err && typeof err === "object" && "code" in err ? String(err.code) : "";
+    if (code === "EROFS" || code === "EACCES" || code === "EPERM") {
+      throw new Error(
+        "No pude escribir en data/. Esta app tiene que correr en tu PC (npm run dev), no en un hosting de solo lectura como Vercel.",
+      );
+    }
+    throw err;
+  }
 }
 
 export function isResumeConfigured(resume: BaseResume): boolean {

@@ -5,8 +5,11 @@ import { dataPath } from "@shared/paths";
 import { extractUploadedText, saveUpload } from "@shared/extract-text";
 import { parseCvAndProfile } from "@shared/anthropic";
 import type { BaseResume, GapQuestion, ProfileRaw } from "@shared/types";
+import { errorJson, localOnlyError } from "@shared/api-route";
+import { requireSheetId } from "@shared/sheet-url";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 function imageMediaType(
   mime: string,
@@ -24,9 +27,13 @@ function imageMediaType(
 }
 
 export async function POST(request: Request) {
-  loadEnv();
-  ensureDirs();
   try {
+    const blocked = localOnlyError();
+    if (blocked) return blocked;
+
+    loadEnv();
+    ensureDirs();
+
     const form = await request.formData();
     const payloadRaw = form.get("payload");
     if (typeof payloadRaw !== "string") {
@@ -35,6 +42,10 @@ export async function POST(request: Request) {
     const payload = JSON.parse(payloadRaw) as Omit<ProfileRaw, "cv_text" | "cv_filename"> & {
       cv_text?: string;
     };
+
+    if (payload.google_sheet?.enabled) {
+      requireSheetId(payload.google_sheet.url ?? "");
+    }
 
     let cvText = payload.cv_text?.trim() ?? "";
     let cvFilename = "";
@@ -82,7 +93,6 @@ export async function POST(request: Request) {
       extracted: parsed.extracted as BaseResume,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return errorJson(err);
   }
 }

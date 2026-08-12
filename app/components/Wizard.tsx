@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { readApiJson } from "@/app/lib/read-api-json";
+import { sheetIdFromUrl } from "@shared/sheet-url";
 
 type Position = { title: string; daily_quota: number };
 
@@ -64,8 +66,9 @@ export function Wizard() {
     if (step === 0) return Boolean(cvText.trim() || cvFile);
     if (step === 1) return Boolean(personal.full_name && personal.email && personal.city);
     if (step === 2) return positions.some((p) => p.title.trim());
+    if (step === 5 && sheetEnabled) return Boolean(sheetIdFromUrl(sheetUrl));
     return true;
-  }, [step, cvText, cvFile, personal, positions]);
+  }, [step, cvText, cvFile, personal, positions, sheetEnabled, sheetUrl]);
 
   function toggleBoard(name: string) {
     setBoards((prev) => (prev.includes(name) ? prev.filter((b) => b !== name) : [...prev, name]));
@@ -108,7 +111,7 @@ export function Wizard() {
       );
       if (cvFile) form.set("cv", cvFile);
       const res = await fetch("/api/setup/parse", { method: "POST", body: form });
-      const data = await res.json();
+      const data = await readApiJson<{ error?: string; gaps?: Gap[] }>(res);
       if (!res.ok) throw new Error(data.error || "No pude parsear el CV");
       setGaps(data.gaps ?? []);
       setStep(6);
@@ -131,7 +134,7 @@ export function Wizard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: override ?? answers }),
       });
-      const data = await res.json();
+      const data = await readApiJson<{ error?: string }>(res);
       if (!res.ok) throw new Error(data.error || "No pude armar el CV base");
       setDone(true);
     } catch (err) {
@@ -317,10 +320,26 @@ export function Wizard() {
             Sincronizar con una planilla de Google
           </label>
           {sheetEnabled ? (
-            <Field label="Link de la hoja" value={sheetUrl} onChange={setSheetUrl} />
+            <>
+              <Field label="Link de la hoja" value={sheetUrl} onChange={setSheetUrl} />
+              {sheetUrl.trim() && !sheetIdFromUrl(sheetUrl) ? (
+                <p className="text-sm text-red-700">
+                  Pegá el link completo de Google Sheets (docs.google.com/spreadsheets/d/...).
+                </p>
+              ) : null}
+              <p className="text-sm text-stone-600">
+                El link se guarda ahora. La planilla se actualiza cuando postulás, no en este paso.
+                Compartí la hoja con el email de la cuenta de servicio (Editor) y poné
+                GOOGLE_SERVICE_ACCOUNT_JSON o GOOGLE_APPLICATION_CREDENTIALS en el archivo .env.
+              </p>
+            </>
           ) : (
             <p className="text-stone-600">Si no, el seguimiento queda en data/job_tracker.json.</p>
           )}
+          <p className="text-sm text-stone-500">
+            Al guardar se lee el CV con Anthropic. Hace falta ANTHROPIC_API_KEY en .env y correr la
+            app en tu PC (npm run dev), no en Vercel.
+          </p>
         </section>
       )}
 
@@ -374,7 +393,7 @@ export function Wizard() {
           <button
             type="button"
             className="rounded-lg bg-teal-700 px-4 py-2 text-white disabled:opacity-40"
-            disabled={busy}
+            disabled={!canNext || busy}
             onClick={parseCv}
           >
             {busy ? "Leyendo el CV…" : "Guardar y analizar"}

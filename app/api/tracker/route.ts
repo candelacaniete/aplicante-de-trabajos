@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { loadEnv } from "@shared/load-env";
 import { isResumeConfigured, readBaseResume, readConfig, readProgress, readTracker } from "@shared/store";
 import { appliedToday, remainingForSearch, remainingTotal } from "@shared/tracker";
+import { errorJson } from "@shared/api-route";
 
 export const runtime = "nodejs";
 
 export async function GET() {
+  try {
   loadEnv();
   const resume = readBaseResume();
   const config = readConfig();
@@ -31,4 +33,7 @@ export async function GET() {
     recent,
     progress: readProgress(),
   });
+  } catch (err) {
+    return errorJson(err);
+  }
 }

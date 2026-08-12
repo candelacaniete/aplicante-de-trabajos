@@ -6,13 +6,18 @@ import { buildResumeWithAnswers } from "@shared/anthropic";
 import { configFromRaw } from "@shared/config-from-raw";
 import { generateAllResumes } from "@cv-generator/generate";
 import type { BaseResume, GapQuestion } from "@shared/types";
+import { errorJson, localOnlyError } from "@shared/api-route";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
-  loadEnv();
-  ensureDirs();
   try {
+    const blocked = localOnlyError();
+    if (blocked) return blocked;
+
+    loadEnv();
+    ensureDirs();
     const body = (await request.json()) as { answers?: Record<string, string> };
     const raw = readProfileRaw();
     if (!raw) {
@@ -59,7 +64,6 @@ export async function POST(request: Request) {
       });
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return errorJson(err);
   }
 }

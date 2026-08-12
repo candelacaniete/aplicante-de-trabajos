@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { RunProgress, TrackerEntry } from "@shared/types";
+import { readApiJson } from "@/app/lib/read-api-json";
 
 interface DashboardPayload {
   configured: boolean;
@@ -24,7 +25,7 @@ export function Dashboard() {
     async function tick() {
       try {
         const res = await fetch("/api/tracker");
-        const json = await res.json();
+        const json = await readApiJson<DashboardPayload & { error?: string }>(res);
         if (cancelled) return;
         if (!res.ok) throw new Error(json.error || "No pude leer el tracker");
         setData(json);
@@ -50,7 +51,7 @@ export function Dashboard() {
     setError("");
     try {
       const res = await fetch("/api/run", { method: "POST" });
-      const json = await res.json();
+      const json = await readApiJson<{ error?: string }>(res);
       if (!res.ok) throw new Error(json.error || "No pude iniciar la corrida");
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
