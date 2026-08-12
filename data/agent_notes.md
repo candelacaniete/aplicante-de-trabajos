@@ -13,11 +13,14 @@ Herramienta local de un solo usuario. La fuente de verdad son los JSON en `data/
 
 ## Portales
 
-El único portal con selectores reales y revisables en este repo es **demo**: un tablero HTML local para probar el patrón end-to-end.
+Implementados: **computrabajo**, **linkedin**, **indeed**, **bumeran**, más **demo** (tablero local).
 
-LinkedIn, Computrabajo e Indeed están como módulos con la interfaz `JobBoard`, pero **sin selectores inventados**. Hasta que revisemos juntos la página, esos módulos fallan con `SelectorsPendingError`.
-
-LinkedIn además tiene `requireManualConfirm: true`: completa lo que pueda y se detiene antes de Enviar.
+- Dominios por defecto: Argentina (`ar.computrabajo.com`, `ar.indeed.com`, `bumeran.com.ar`). Se cambian en `config.json` → `boards.*.baseUrl`.
+- Primera corrida: logueate a mano. El perfil de Chromium guarda la sesión.
+- LinkedIn: `requireManualConfirm: true`. Completa Easy Apply y se detiene antes de Enviar solicitud.
+- Indeed: solo Indeed Apply. Si el aviso manda al sitio de la empresa, queda incompleto.
+- Computrabajo: HTML vivo `article.box_offer`, botón Postular, `?pubdate=`.
+- Bumeran: URL `/empleos-busqueda-…html` y botón Postularme. Cloudflare a veces pide que resuelvas un desafío a mano (el script se pausa en CAPTCHA).
 
 ## Guardia anti-repetidos
 

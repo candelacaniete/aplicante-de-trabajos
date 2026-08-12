@@ -22,6 +22,26 @@ npx playwright install chromium
 npm run dev            # http://localhost:3000
 ```
 
+Esta herramienta está pensada para correr **en tu compu**, no en la nube: Playwright abre el navegador visible y los JSON viven en disco.
+
+## Si igual querés deployar la UI en Vercel
+
+El error `No Next.js version detected` aparece porque Next está en `ui/`, no en la raíz. No hace falta tipear una versión a mano.
+
+En el proyecto de Vercel → **Settings → General**:
+
+| Campo | Valor |
+| --- | --- |
+| **Root Directory** | `ui` |
+| **Framework Preset** | Next.js (se detecta solo) |
+| **Node.js Version** | `22.x` |
+| Next.js version | no la completes; en el repo es **16.3.0** |
+
+Environment variables: `ANTHROPIC_API_KEY`.
+
+La corrida de postulaciones (Playwright headed, perfil de Chrome, `data/*.json`) **no funciona en Vercel**. Eso seguí corriendolo con `npm run dev` / `npm run apply` en local.
+
+
 1. En **Cargar datos** completá el wizard (reemplaza la Parte 1 manual).
 2. Anthropic parsea el CV y te muestra huecos. Si no sabés algo, dejalo vacío: **no se inventa**.
 3. Se arman `data/base_resume.json`, `data/config.json` y los PDFs.
@@ -37,13 +57,11 @@ npm test
 
 ## Portales
 
-El único portal con selectores reales en este repo es **demo**: un tablero HTML local para probar el patrón (cupos, exclusiones, DNI bloqueado, destildar “seguir a la empresa”).
+Computrabajo, LinkedIn, Indeed y Bumeran (Argentina por defecto). El portal **demo** sigue ahí para probar el patrón sin sitios reales.
 
-LinkedIn, Computrabajo e Indeed tienen la interfaz `JobBoard` pero **sin selectores inventados**. Hasta que revisemos juntos la página, tiran `SelectorsPendingError`.
+La primera corrida de cada portal: logueate a mano. LinkedIn nunca aprieta Enviar (confirmación en el dashboard). Indeed solo usa Indeed Apply, no el sitio de la empresa.
 
-LinkedIn además tiene `requireManualConfirm: true`: nunca aprieta Enviar. Completa lo que pueda y espera a que vos lo hagas. En el dashboard aparece “Ya envié”.
-
-Elegí el primer portal real en el chat (Computrabajo, Indeed, Bumeran, etc.) y lo armamos mirando la página, no de memoria.
+Dominios en `data/config.json` → `boards.*.baseUrl` si no estás en Argentina.
 
 ## Límites duros (en código)
 

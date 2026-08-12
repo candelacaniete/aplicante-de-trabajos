@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "Agente local de búsqueda de empleo (Next.js + Playwright + Anthropic)",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "npm run dev --prefix ui",
     "build": "npm run build --prefix ui",
@@ -19,7 +22,10 @@
     "mammoth": "^1.10.0",
     "playwright": "^1.55.0",
     "unpdf": "^1.1.0",
-    "zod": "^4.0.17"
+    "zod": "^4.0.17",
+    "next": "16.3.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@types/node": "^20",

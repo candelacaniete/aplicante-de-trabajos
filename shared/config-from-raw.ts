@@ -28,10 +28,16 @@ export function configFromRaw(raw: ProfileRaw, resume: BaseResume): AppConfig {
   }
   for (const name of boards) {
     if (!config.boards[name]) {
+      const baseUrls: Record<string, string> = {
+        computrabajo: "https://ar.computrabajo.com",
+        indeed: "https://ar.indeed.com",
+        bumeran: "https://www.bumeran.com.ar",
+      };
       config.boards[name] = {
         enabled: true,
         requireManualConfirm: name === "linkedin",
-        selectorsReviewed: name === "demo",
+        selectorsReviewed: ["demo", "computrabajo", "linkedin", "indeed", "bumeran"].includes(name),
+        baseUrl: baseUrls[name],
       };
     }
   }

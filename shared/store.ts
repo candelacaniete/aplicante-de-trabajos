@@ -64,9 +64,25 @@ export function defaultConfig(): AppConfig {
     google_sheet: { enabled: false, url: "" },
     boards: {
       demo: { enabled: true, requireManualConfirm: false, selectorsReviewed: true },
-      linkedin: { enabled: false, requireManualConfirm: true, selectorsReviewed: false },
-      computrabajo: { enabled: false, requireManualConfirm: false, selectorsReviewed: false },
-      indeed: { enabled: false, requireManualConfirm: false, selectorsReviewed: false },
+      linkedin: { enabled: false, requireManualConfirm: true, selectorsReviewed: true },
+      computrabajo: {
+        enabled: false,
+        requireManualConfirm: false,
+        selectorsReviewed: true,
+        baseUrl: "https://ar.computrabajo.com",
+      },
+      indeed: {
+        enabled: false,
+        requireManualConfirm: false,
+        selectorsReviewed: true,
+        baseUrl: "https://ar.indeed.com",
+      },
+      bumeran: {
+        enabled: false,
+        requireManualConfirm: false,
+        selectorsReviewed: true,
+        baseUrl: "https://www.bumeran.com.ar",
+      },
     },
     delays: { min_ms: 800, max_ms: 2500 },
     headless: false,
